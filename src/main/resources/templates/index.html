@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>index</title>
+    <style>
+        .divcenter{
+            width: 90%;
+            margin: 0px auto;
+        }
+        .txt_center{text-align: center}
+        .margin_left30{margin-left: 30px}
+    </style>
+</head>
+<body>
+<div class="divcenter">
+    <fieldset>
+        <legend>linux命令执行面板</legend>
+        <p>Linux命令：<input type="text" class="" id="linuxCmd"/><input type="button" id="submitBtn" class="margin_left30" value="执行"/></p>
+        <p>返回码：<apan id="r_code"></apan>；结果描述：<span id="r_msg"></span></p>
+        <p>返回数据：</p>
+        <p id="r_data"></p>
+    </fieldset>
+</div>
+
+
+<script th:src="@{jquery/js/jquery-3.3.1.min.js}" type="text/javascript"></script>
+</body>
+<script>
+    $(function () {
+        $("#submitBtn").click(function () {
+            var linuxCmd = $("#linuxCmd").val();
+            if(!linuxCmd){
+                alert("指令不能为空");
+                return;
+            }
+            if(window.confirm('确定执行该指令吗')){
+                $.ajax({
+                    url: '/linux/cmd',
+                    type: 'POST',
+                    datatype: 'json',
+                    data: {
+                        "linuxCmd": linuxCmd
+                    },
+                    success: function (data) {
+                        $("#r_code").html(data.code);
+                        $("#r_msg").html(data.msg);
+                        $("#r_data").html(data.data);
+                    }
+                });
+            }
+        });
+    });
+</script>
+</html>
