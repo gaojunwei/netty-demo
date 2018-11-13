@@ -9,8 +9,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
- * @author: duxuefu
- * @Date: 2018/2/2 14:37
+ * @author: gaojunwei
+ * @Date: 2018/11/13
  * @Description:
  */
 @Configuration
