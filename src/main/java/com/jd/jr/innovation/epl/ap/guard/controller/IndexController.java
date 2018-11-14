@@ -22,7 +22,6 @@ public class IndexController {
      */
     @RequestMapping(value ="/index",method = RequestMethod.GET)
     public String index() {
-        logger.info("come in ...");
         return "index";
     }
 }
