@@ -32,7 +32,7 @@ public class LinuxCmdController {
      * @param linuxCmd
      * @return
      */
-    @RequestMapping(value ="/cmd")
+    @RequestMapping(value ="cmd")
     public SingleResult<String> linuxCmd(@RequestParam(required = true) String linuxCmd) {
         String logId = UuidUtil.getUUID();
         logger.info("linuxCmd_start logId:{},linuxCmd:{}",logId,linuxCmd);
