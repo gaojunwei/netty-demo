@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.jd.jr.innovation</groupId>
-    <artifactId>innovation-epl-ap-guard</artifactId>
+    <artifactId>ca-guard</artifactId>
     <version>0.0.1</version>
 
     <parent>
