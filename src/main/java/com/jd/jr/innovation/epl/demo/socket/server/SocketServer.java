@@ -1,6 +1,7 @@
 package com.jd.jr.innovation.epl.demo.socket.server;
 
 import com.jd.jr.innovation.epl.demo.config.SysConfig;
+import com.jd.jr.innovation.epl.demo.socket.server.codec.MyDecoder;
 import com.jd.jr.innovation.epl.demo.socket.server.handler.ServerHandler;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
@@ -18,6 +19,8 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author: gaojunwei
@@ -43,7 +46,9 @@ public class SocketServer implements ApplicationRunner{
             bootstrap.group(bossGruop, workGroup).channel(NioServerSocketChannel.class).childHandler(new ChannelInitializer<SocketChannel>() {
                 @Override
                 protected void initChannel(SocketChannel ch) throws Exception {
-                    ch.pipeline().addLast(new IdleStateHandler(0, 0, 50));
+                    ch.pipeline().addLast("ping",new IdleStateHandler(20, 0, 0, TimeUnit.SECONDS));
+                    ch.pipeline().addLast("decoder",new MyDecoder());
+                    //ch.pipeline().addLast("encoder",new MyEncoder());
                     ch.pipeline().addLast(new ServerHandler());
                 }
             }).option(ChannelOption.SO_BACKLOG, 1024);
