@@ -1,17 +1,22 @@
 package com.jd.jr.innovation.epl.demo.socket.server.handler;
 
 import com.alibaba.fastjson.JSON;
-import com.jd.jr.innovation.epl.demo.command.CommandWrapper;
-import com.jd.jr.innovation.epl.demo.command.ap.HeartbeatData;
+import com.jd.jr.innovation.epl.demo.command.enums.ApTypeEnum;
 import com.jd.jr.innovation.epl.demo.command.enums.CmdEnum;
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.*;
+import com.jd.jr.innovation.epl.demo.command.enums.EplTypeEnum;
+import com.jd.jr.innovation.epl.demo.config.SerialConfig;
+import com.jd.jr.innovation.epl.demo.socket.server.common.utils.BinaryUtil;
+import com.jd.jr.innovation.epl.demo.socket.server.common.utils.ByteUtils;
+import com.jd.jr.innovation.epl.demo.socket.server.common.utils.CRC8Utils;
+import com.jd.jr.innovation.epl.demo.socket.server.common.utils.CommandEscape;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author: gaojunwei
@@ -35,8 +40,9 @@ public class ServerHandler extends SimpleChannelInboundHandler<StringBuilder> {
     }
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, StringBuilder msg) throws Exception {
-        System.out.println("server receive data:"+msg.toString());
+    protected void channelRead0(ChannelHandlerContext ctx, StringBuilder stringBuilder) throws Exception {
+        System.out.println("server receive data:"+stringBuilder.toString());
+        dealCommand(stringBuilder);
     }
 
     /**
@@ -59,5 +65,111 @@ public class ServerHandler extends SimpleChannelInboundHandler<StringBuilder> {
         }else {
             super.userEventTriggered(ctx,evt);
         }
+    }
+
+
+    /**
+     * 递归处理指令结果
+     */
+    public void dealCommand(StringBuilder stringBuilder)
+    {
+        logger.info("start analysis");
+        /**
+         * 将消息格式不正确的数据移除
+         */
+        int headIndex = stringBuilder.indexOf(SerialConfig.MSG_HEAD);
+        int tailIndex = stringBuilder.indexOf(SerialConfig.MSG_TAIL);
+        //(1)消息格式不完整-不处理等待下次处理
+        if(headIndex==-1 || tailIndex==-1)
+        {
+            logger.info("Serial data analysis end reason:{},buffer:{}", "消息不完整暂不处理",stringBuilder);
+            return;
+        }
+        //(2)消息格式错误-包尾在包头前--干掉第包头前的信息
+        if (headIndex>tailIndex) {
+            stringBuilder.replace(0, headIndex, "");
+            dealCommand(stringBuilder);
+            return;
+        }
+        //(3)消息格式错误-包头后还有包头而不是包尾-干掉第二个包头前的信息
+        int headIndex2 = stringBuilder.indexOf(SerialConfig.MSG_HEAD,headIndex+2);
+        if((headIndex2!=-1) && headIndex2<tailIndex) {
+            stringBuilder.replace(0, headIndex2, "");
+            dealCommand(stringBuilder);
+            return;
+        }
+
+        int len = SerialConfig.MSG_HEAD.length();
+        /**
+         * 取出可处理的完整消息包
+         */
+        String cmdStr = stringBuilder.substring(headIndex, tailIndex+len).replaceAll("\\|","");
+        stringBuilder.replace(0, tailIndex+len, "");//移除已处理的消息包信息
+        //16进制字符串转二进制
+        byte[] bytes = BinaryUtil.toBytes(cmdStr);
+        /**
+         * 反转义
+         */
+        byte[] bytess = CommandEscape.unescape(bytes);
+        //取出包头
+        byte header = bytess[0];
+        //取出消息长度
+        byte l1 = bytess[1];
+        byte l2 = bytess[2];
+        byte[] byteLength = new byte[2];
+        byteLength[0] = l1;
+        byteLength[1] = l2;
+        short length = ByteUtils.getShort(byteLength);
+        //校验字节数组长度是否合法
+        if((length+5)!=bytess.length)
+        {
+            logger.info("Serial data analysis end data:{},reason:{}",cmdStr, "字节数组长度是否合法");
+            return;
+        }
+        //取出选项
+        byte option = bytess[3];
+        //取出命令区数据
+        byte cmdByte = bytess[4];
+        //取出校验位
+        byte crc8Byte = bytess[length+3];
+        /**
+         * 校验校验位
+         */
+        //计算校验位
+        byte[] crc8Bytes = new byte[length+2];//加上2字节长度的 长度区
+        System.arraycopy(bytess, 1, crc8Bytes, 0, length+2);
+        byte rcrc8Byte = CRC8Utils.calcCrc8(crc8Bytes);
+        //取出数据区
+        byte[] dateBytes = new byte[length-2];
+        System.arraycopy(crc8Bytes, 4, dateBytes, 0, dateBytes.length);
+        //取出包尾
+        byte tailByte = bytess[length+4];
+        //对比校验位
+        if(rcrc8Byte!=crc8Byte)
+        {
+            logger.info("Serial data analysis end data:{},reason:{}",cmdStr, "crc8 error");
+            return;
+        }
+        /**
+         * 根据指令回调指定的指令处理器
+         */
+        logger.info("analysis success,包头:{},长度:{},选项:{},命令:{},数据区:{},校验:{},包尾:{}",
+                BinaryUtil.byteToHex(header),BinaryUtil.bytesToHexFun3(byteLength),BinaryUtil.byteToHex(option),
+                BinaryUtil.byteToHex(cmdByte),BinaryUtil.bytesToHexFun3(dateBytes),BinaryUtil.byteToHex(crc8Byte),BinaryUtil.byteToHex(tailByte));
+
+        //判断指令类型
+        if(cmdByte == CmdEnum.CMD_AP.getCmd())//ap类指令
+        {
+
+        }else
+        if(cmdByte == CmdEnum.CMD_EPL.getCmd()){//epl类指令
+
+        }else
+        if(cmdByte == CmdEnum.CMD_BLE.getCmd()) {//epl类指令
+
+        }else{
+            System.out.println("未知指令类型");
+        }
+        dealCommand(stringBuilder);//递归继续处理
     }
 }
