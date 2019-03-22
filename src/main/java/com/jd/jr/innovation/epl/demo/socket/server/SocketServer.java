@@ -48,11 +48,9 @@ public class SocketServer implements ApplicationRunner{
                 protected void initChannel(SocketChannel ch) throws Exception {
                     ch.pipeline().addLast("ping",new IdleStateHandler(20, 0, 0, TimeUnit.SECONDS));
                     ch.pipeline().addLast("decoder",new MyDecoder());
-                    //ch.pipeline().addLast("encoder",new MyEncoder());
                     ch.pipeline().addLast(new ServerHandler());
                 }
             }).option(ChannelOption.SO_BACKLOG, 1024);
-            bootstrap.option(ChannelOption.SO_KEEPALIVE,true);
 
             ChannelFuture channelFuture = bootstrap.bind(config.getSocketServerPort()).sync();
             if(channelFuture.isSuccess())

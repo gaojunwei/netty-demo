@@ -1,6 +1,9 @@
 package com.jd.jr.innovation.epl.demo.socket.server.handler;
 
 import com.alibaba.fastjson.JSON;
+import com.jd.jr.innovation.epl.demo.command.CommandWrapper;
+import com.jd.jr.innovation.epl.demo.command.ap.RegisterConfirmData;
+import com.jd.jr.innovation.epl.demo.command.enums.ApCmdEnum;
 import com.jd.jr.innovation.epl.demo.command.enums.ApTypeEnum;
 import com.jd.jr.innovation.epl.demo.command.enums.CmdEnum;
 import com.jd.jr.innovation.epl.demo.command.enums.EplTypeEnum;
@@ -9,10 +12,15 @@ import com.jd.jr.innovation.epl.demo.socket.server.common.utils.BinaryUtil;
 import com.jd.jr.innovation.epl.demo.socket.server.common.utils.ByteUtils;
 import com.jd.jr.innovation.epl.demo.socket.server.common.utils.CRC8Utils;
 import com.jd.jr.innovation.epl.demo.socket.server.common.utils.CommandEscape;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleState;
 import io.netty.handler.timeout.IdleStateEvent;
+import io.netty.util.AttributeKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class ServerHandler extends SimpleChannelInboundHandler<StringBuilder> {
     private static final Logger logger = LoggerFactory.getLogger(ServerHandler.class);
+    private AttributeKey<String> attributeKey = AttributeKey.valueOf("apMac");
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
@@ -41,8 +50,10 @@ public class ServerHandler extends SimpleChannelInboundHandler<StringBuilder> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, StringBuilder stringBuilder) throws Exception {
-        System.out.println("server receive data:"+stringBuilder.toString());
-        dealCommand(stringBuilder);
+        logger.info("server receive apMac:{},data:",ctx.channel().attr(attributeKey).get(),stringBuilder.toString());
+        dealCommand(ctx.channel(),stringBuilder);
+        String apMac = ctx.channel().attr(attributeKey).get();
+        System.out.println("attributeKey--apMac:"+apMac);
     }
 
     /**
@@ -71,9 +82,8 @@ public class ServerHandler extends SimpleChannelInboundHandler<StringBuilder> {
     /**
      * 递归处理指令结果
      */
-    public void dealCommand(StringBuilder stringBuilder)
+    public void dealCommand(Channel channel,StringBuilder stringBuilder)
     {
-        logger.info("start analysis");
         /**
          * 将消息格式不正确的数据移除
          */
@@ -88,14 +98,14 @@ public class ServerHandler extends SimpleChannelInboundHandler<StringBuilder> {
         //(2)消息格式错误-包尾在包头前--干掉第包头前的信息
         if (headIndex>tailIndex) {
             stringBuilder.replace(0, headIndex, "");
-            dealCommand(stringBuilder);
+            dealCommand(channel,stringBuilder);
             return;
         }
         //(3)消息格式错误-包头后还有包头而不是包尾-干掉第二个包头前的信息
         int headIndex2 = stringBuilder.indexOf(SerialConfig.MSG_HEAD,headIndex+2);
         if((headIndex2!=-1) && headIndex2<tailIndex) {
             stringBuilder.replace(0, headIndex2, "");
-            dealCommand(stringBuilder);
+            dealCommand(channel,stringBuilder);
             return;
         }
 
@@ -123,7 +133,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<StringBuilder> {
         //校验字节数组长度是否合法
         if((length+5)!=bytess.length)
         {
-            logger.info("Serial data analysis end data:{},reason:{}",cmdStr, "字节数组长度是否合法");
+            logger.info("Serial data analysis fail data:{},reason:{}",cmdStr, "data length error");
             return;
         }
         //取出选项
@@ -160,16 +170,29 @@ public class ServerHandler extends SimpleChannelInboundHandler<StringBuilder> {
         //判断指令类型
         if(cmdByte == CmdEnum.CMD_AP.getCmd())//ap类指令
         {
-
-        }else
-        if(cmdByte == CmdEnum.CMD_EPL.getCmd()){//epl类指令
-
-        }else
-        if(cmdByte == CmdEnum.CMD_BLE.getCmd()) {//epl类指令
-
-        }else{
-            System.out.println("未知指令类型");
+            //ap注册指令
+            if(dateBytes[0] == ApCmdEnum.CMD_REG.getCmd()){
+                byte[] macBytes = new byte[6];
+                System.arraycopy(dateBytes, 1, macBytes, 0, macBytes.length);
+                String apMac = BinaryUtil.bytesToHexFun3(macBytes);
+                logger.info("Aa链接注册成功Mac地址:"+apMac);
+                channel.attr(attributeKey).set(apMac);
+                //返回注册成功通知
+                RegisterConfirmData registerConfirmData = new RegisterConfirmData();
+                CommandWrapper registerWrapper = new CommandWrapper(CmdEnum.CMD_AP.getCmd(),registerConfirmData.getBytes(),"regConfirm指令");
+                byte[] dataBytes = registerWrapper.toBytes();
+                ByteBuf byteBuf = Unpooled.buffer(dataBytes.length);
+                byteBuf.writeBytes(dataBytes);
+                ChannelFuture future = channel.writeAndFlush(byteBuf);
+                logger.info("通知AP链接注册成功,{}",future.isSuccess());
+            }else
+            //异常报告
+            if(dateBytes[0] == ApCmdEnum.CMD_REPORT.getCmd()){
+                logger.info("AP端异常报告信息:{}",BinaryUtil.bytesToHexFun3(dateBytes));
+            }else {
+                logger.info("AP未知指令信息:{}",BinaryUtil.bytesToHexFun3(dateBytes));
+            }
         }
-        dealCommand(stringBuilder);//递归继续处理
+        dealCommand(channel,stringBuilder);//递归继续处理
     }
 }
