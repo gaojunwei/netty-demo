@@ -1,4 +1,4 @@
-innovation.epl.ap.guard.local
+NETTY DEMO
 ====
 辅助程序（JAVA版）
 https://my.oschina.net/tridays/blog/825245
