@@ -8,6 +8,7 @@ package com.gjw.test.common.enums;
 public enum SystemCode {
 
     /**************************** 000系统级异常码 start *****************************/
+    SUCCESS("000000", "success"),
     SYSTEM_ERROR("999999", "系统错误!"),
     PARAM_ERROR("000001", "非法请求参数"),
     DATA_NOT_EXIST_ERROR("000002", "数据不存在"),

@@ -27,18 +27,4 @@ public class HeartBeatUtils {
         }
         return flag;
     }
-
-   /* public static void main(String[] args) {
-        String ht = SerialConfig.hexHeartBeatStrFormat;
-
-        String data = "fsdfsdfiwuye8rywe2hrihihfiduhfisuajfi".toUpperCase();
-
-        data = "|AA00030004"+ht+ht+data+ht;
-
-        StringBuilder stringBuilder = new StringBuilder(data);
-        System.out.println("元1："+stringBuilder.toString());
-
-        boolean flag = HeartBeatUtils.filterHeartBeat(stringBuilder);
-        System.out.println("元2："+stringBuilder.toString() +"  "+ flag);
-    }*/
 }
