@@ -19,7 +19,7 @@
         <dependency>
             <groupId>com.gjw.demo</groupId>
             <artifactId>gjw-common</artifactId>
-            <version>${project.version}</version>
+            <version>0.0.1-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
@@ -34,13 +34,6 @@
                     <target>1.8</target>
                     <encoding>UTF-8</encoding>
                     <showWarnings>true</showWarnings>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <classifier>exec</classifier>
                 </configuration>
             </plugin>
             <!-- 跳过自动测试 -->
