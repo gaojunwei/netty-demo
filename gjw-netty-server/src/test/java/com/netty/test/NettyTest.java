@@ -1,8 +1,8 @@
 package com.netty.test;
 
-import com.jd.jr.innovation.epl.demo.command.CommandWrapper;
-import com.jd.jr.innovation.epl.demo.command.ap.HeartbeatData;
-import com.jd.jr.innovation.epl.demo.command.enums.CmdEnum;
+import com.gjw.netty.demo.command.CommandWrapper;
+import com.gjw.netty.demo.command.ap.HeartbeatData;
+import com.gjw.netty.demo.command.enums.CmdEnum;
 import com.gjw.test.common.utils.BinaryUtil;
 import org.junit.Test;
 
