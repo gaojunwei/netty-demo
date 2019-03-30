@@ -15,6 +15,6 @@ public class SysConfig {
     /**
      * 服务端监听端口号
      */
-    @Value("${socket.server.port}")
+    @Value("${socket.server.port:8888}")
     private Integer socketServerPort;
 }
