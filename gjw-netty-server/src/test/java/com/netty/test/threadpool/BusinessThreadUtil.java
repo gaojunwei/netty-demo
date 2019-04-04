@@ -21,7 +21,7 @@ public class BusinessThreadUtil {
         return businessThreadUtil;
     }
     //处理任务线程池
-    private ExecutorService executor = new ThreadPoolExecutor(5, 100, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(100000));//CPU核数4-10倍
+    private ExecutorService executor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(3));//CPU核数4-10倍
 
     /**
      * 处理任务
@@ -47,7 +47,7 @@ public class BusinessThreadUtil {
         System.out.println("ThreadPool shutdown");
     }
 
-    public static void main(String[] args) throws InterruptedException {
+    /*public static void main(String[] args) throws InterruptedException {
         System.out.println("start");
         for (int i = 0; i < 5; i++) {
             BusinessThreadUtil.getInstance().doTask(UuidUtil.getUUID());
@@ -67,5 +67,5 @@ public class BusinessThreadUtil {
         }
         Thread.sleep(10*1000);
         System.out.println("end-3");
-    }
+    }*/
 }

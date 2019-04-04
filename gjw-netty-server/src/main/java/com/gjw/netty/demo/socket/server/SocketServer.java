@@ -1,3 +1,4 @@
+/*
 package com.gjw.netty.demo.socket.server;
 
 import com.gjw.test.common.utils.UuidUtil;
@@ -23,11 +24,13 @@ import org.springframework.stereotype.Component;
 
 import java.util.concurrent.TimeUnit;
 
+*/
 /**
  * @author: gaojunwei
  * @Date: 2018/11/29 17:15
  * @Description: Socket服务端
- */
+ *//*
+
 @Component
 @Order(value = 1)
 public class SocketServer implements ApplicationRunner{
@@ -63,4 +66,4 @@ public class SocketServer implements ApplicationRunner{
             workGroup.shutdownGracefully();
         }
     }
-}
+}*/

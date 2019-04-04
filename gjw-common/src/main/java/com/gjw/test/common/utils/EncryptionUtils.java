@@ -151,8 +151,4 @@ public class EncryptionUtils {
     public static String sha256Hex(String str) {
         return DigestUtils.sha256Hex(str);
     }
-
-    public static void main(String[] args) throws Exception {
-        System.out.println(md5(new File("C:\\cd\\test.jar")));
-    }
 }

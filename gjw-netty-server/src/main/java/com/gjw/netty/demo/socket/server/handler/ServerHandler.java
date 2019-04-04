@@ -46,7 +46,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<StringBuilder> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, StringBuilder stringBuilder) throws Exception {
-        logger.info("server receive apMac:{},data:",ctx.channel().attr(attributeKey).get(),stringBuilder.toString());
+        logger.info("server receive apMac:{},dao:",ctx.channel().attr(attributeKey).get(),stringBuilder.toString());
         dealCommand(ctx.channel(),stringBuilder);
         String apMac = ctx.channel().attr(attributeKey).get();
         System.out.println("attributeKey--apMac:"+apMac);
@@ -88,7 +88,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<StringBuilder> {
         //(1)消息格式不完整-不处理等待下次处理
         if(headIndex==-1 || tailIndex==-1)
         {
-            logger.info("Serial data analysis end reason:{},buffer:{}", "消息不完整暂不处理",stringBuilder);
+            logger.info("Serial dao analysis end reason:{},buffer:{}", "消息不完整暂不处理",stringBuilder);
             return;
         }
         //(2)消息格式错误-包尾在包头前--干掉第包头前的信息
@@ -129,7 +129,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<StringBuilder> {
         //校验字节数组长度是否合法
         if((length+5)!=bytess.length)
         {
-            logger.info("Serial data analysis fail data:{},reason:{}",cmdStr, "data length error");
+            logger.info("Serial dao analysis fail dao:{},reason:{}",cmdStr, "dao length error");
             return;
         }
         //取出选项
@@ -153,7 +153,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<StringBuilder> {
         //对比校验位
         if(rcrc8Byte!=crc8Byte)
         {
-            logger.info("Serial data analysis end data:{},reason:{}",cmdStr, "crc8 error");
+            logger.info("Serial dao analysis end dao:{},reason:{}",cmdStr, "crc8 error");
             return;
         }
         /**
