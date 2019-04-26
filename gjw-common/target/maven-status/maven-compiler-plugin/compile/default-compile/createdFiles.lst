@@ -1,0 +1,9 @@
+com\gjw\test\common\enums\SystemCode.class
+com\gjw\test\common\utils\ByteUtils.class
+com\gjw\test\common\utils\EncryptionUtils.class
+com\gjw\test\common\utils\CRC8Utils.class
+com\gjw\test\common\utils\BinaryUtil.class
+com\gjw\test\common\exception\AppException.class
+com\gjw\test\common\utils\UuidUtil.class
+com\gjw\test\common\utils\CommandEscape.class
+com\gjw\test\common\utils\MacUtils.class
