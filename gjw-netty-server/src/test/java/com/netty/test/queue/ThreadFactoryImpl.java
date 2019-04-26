@@ -9,15 +9,9 @@ import java.util.concurrent.ThreadFactory;
  */
 public class ThreadFactoryImpl implements ThreadFactory {
 
-    private String taskId;
-
-    public ThreadFactoryImpl(String taskId) {
-        this.taskId = taskId;
-    }
-
     @Override
     public Thread newThread(Runnable r) {
-        Thread thread = new Thread(r,String.format("Thread-%s",taskId));
+        Thread thread = new Thread(r,"eplSyncSchedule-");
         return thread;
     }
 }
